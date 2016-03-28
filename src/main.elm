@@ -8,8 +8,7 @@ import Text
 import Random
 import Random.Array
 import Window
-import Task exposing (Task)
-import Array exposing (Array)
+import Array
 
 type alias Model =
   { seed : Random.Seed
@@ -53,6 +52,7 @@ initialNumbers =
   , "Wants to be a robot"
   , "Went on /d/"
   , "Would date an alien"
+  , "Loves spicy food"
   ]
 
 main =
