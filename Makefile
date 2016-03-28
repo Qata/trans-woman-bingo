@@ -1,2 +1,2 @@
 all:
-	/usr/local/bin/elm-make main.elm
+	/usr/local/bin/elm-make src/main.elm
