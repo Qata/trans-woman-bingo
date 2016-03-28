@@ -39,9 +39,11 @@ initialNumbers =
   , "Linguist"
   , "Loves the moon"
   , "Loves weird animals"
+  , "Loves spicy food"
   , "Neon Genesis Evangelion"
   , "Owns tabletop simulator"
   , "Owns thigh high socks"
+  , "Pink/purple hair"
   , "Plays competetive smash"
   , "Polyamorous"
   , "Programmer"
@@ -52,7 +54,6 @@ initialNumbers =
   , "Wants to be a robot"
   , "Went on /d/"
   , "Would date an alien"
-  , "Loves spicy food"
   ]
 
 main =
