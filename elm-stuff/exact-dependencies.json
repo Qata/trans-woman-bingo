@@ -1,4 +1,6 @@
 {
-    "circuithub/elm-list-extra": "3.9.0",
+    "circuithub/elm-list-extra": "3.10.0",
+    "NoRedInk/elm-random-extra": "2.1.1",
+    "NoRedInk/elm-task-extra": "1.0.1",
     "elm-lang/core": "3.0.0"
 }

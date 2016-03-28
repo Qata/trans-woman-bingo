@@ -6,42 +6,25 @@ import List exposing (..)
 import Color
 import Text
 import Random
+import Random.Array
 import Window
 import Task exposing (Task)
+import Array exposing (Array)
 
 type alias Model =
   { seed : Random.Seed
   , bingoTiles : List String
-  , windowWidth : Int
-  , windowHeight : Int
+  , generator : Random.Generator (List String)
   }
 
 type Action = NoOp
             | Shuffle
-            | UpdateWindowSize (Int, Int)
 
-randomFold : String -> (List (String, Float), Random.Seed) -> (List (String, Float), Random.Seed)
-randomFold value (l, s) =
-  let randomValue = Random.generate randomGenerator s
-      randomFloat = fst randomValue
-      seed = snd randomValue
-  in
-    ((value, randomFloat) :: l, seed)
-
-shuffle : Random.Seed -> List String -> List String
-shuffle seed list =
-  foldr randomFold ([], seed) list
-  |> fst
-  |> sortBy snd
-  |> map fst
-
-generateRandomSeed : Random.Seed -> Random.Seed
-generateRandomSeed seed =
-  snd <| Random.generate randomGenerator seed
-
-randomGenerator : Random.Generator Float
+randomGenerator : Random.Generator (List String)
 randomGenerator =
-  Random.float 0 <| toFloat (length initialNumbers)
+  initialNumbers
+  |> Random.Array.shuffle << Array.fromList
+  |> Random.map Array.toList
 
 initialNumbers : List String
 initialNumbers =
@@ -73,7 +56,7 @@ initialNumbers =
   ]
 
 main =
-  Signal.map view model
+  Signal.map2 view model Window.dimensions
 
 update : Action -> Model -> Model
 update action model =
@@ -81,35 +64,33 @@ update action model =
     NoOp ->
       model
     Shuffle ->
-      { model
-      | bingoTiles = shuffle model.seed model.bingoTiles
-      , seed = generateRandomSeed model.seed
-      }
-    UpdateWindowSize size ->
-      { model
-      | windowWidth = fst size
-      , windowHeight = snd size
-      }
+      let (tiles, newSeed) = Random.generate model.generator model.seed
+      in
+        { model
+        | bingoTiles = tiles
+        , seed = newSeed
+        }
+
+initialModel : Model
+initialModel =
+  { seed = Random.initialSeed 42
+  , bingoTiles = initialNumbers
+  , generator = randomGenerator
+  }
 
 model : Signal Model
 model =
-  Signal.foldp
-    update
-    { seed = Random.initialSeed 42
-    , bingoTiles = initialNumbers
-    , windowWidth = 0
-    , windowHeight = 0
-    }
-    actions.signal
+  Signal.foldp update initialModel actions.signal
 
 slice : List a -> Int -> Int -> List a
 slice xs s e = take (e - s + 1) <| drop (s - 1) xs
 
-view : Model -> Element
-view model =
-  let boxSize = 150
+view : Model -> (Int, Int) -> Element
+view model (windowWidth, windowHeight) =
+  let boxSize = (min windowWidth windowHeight) |> toFloat |> flip (/) 6 |> round
       boxSpacing = 2
       boxSpacer = spacer boxSpacing boxSpacing
+      shuffleButton = button (Signal.message actions.address Shuffle) "Shuffle"
       sliceTilesAsText start end =
         slice model.bingoTiles start end
         |> map (centered << Text.height 10 << Text.fromString)
@@ -128,18 +109,13 @@ view model =
         |> intersperse boxSpacer
         |> flow down
   in
-    collage model.windowWidth model.windowHeight
+    collage windowWidth windowHeight
     <| map toForm
       [ container ((widthOf bingoTiles) + boxSpacing * 2) ((heightOf bingoTiles) + boxSpacing * 2) middle bingoTiles
         |> color Color.black
-        |> below (container ((widthOf bingoTiles) + boxSpacing * 2)(button (Signal.message actions.address Shuffle) "Shuffle"))
+        |> below (container ((widthOf bingoTiles) + boxSpacing * 2) ((heightOf shuffleButton) * 2) middle shuffleButton)
       ]
 
 actions : Signal.Mailbox Action
 actions =
   Signal.mailbox NoOp
-
-port windowSizeUpdate : Signal (Task x ())
-port windowSizeUpdate =
-  Signal.map UpdateWindowSize Window.dimensions
-  |> Signal.map (Signal.send actions.address)

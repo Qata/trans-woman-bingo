@@ -1,2 +1,4 @@
 *.html
-*.js
+elm.js
+.DS_Store
+build-artifacts/
