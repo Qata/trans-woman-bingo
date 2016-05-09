@@ -1,0 +1,7 @@
+.DS_Store
+build-artifacts/
+elm-stuff/
+Makefile
+*.json
+*.js
+src/
